@@ -8,20 +8,20 @@ import (
 )
 
 func GenerateUniqueRandomOrders() models.OrderList {
-	var array []models.OrderTicket
+	var orders []models.OrderTicket
 
 	//Will loop as long as in orders will be 50 unique tickets
-	for i := 0; i < 20; {
+	for i := 0; i < 50; {
 		newOrderTicket := generateOrderTicket()
-		doesAlreadyExist := doesOrderTicketAlreadyExist(array, newOrderTicket)
+		doesAlreadyExist := doesOrderTicketAlreadyExist(orders, newOrderTicket)
 		if doesAlreadyExist {
 			continue
 		}
-		array = append(array, generateOrderTicket())
+		orders = append(orders, generateOrderTicket())
 		i++
 	}
 
-	return array
+	return orders
 }
 
 func getRandomNumberBetween(min, max int) int {
