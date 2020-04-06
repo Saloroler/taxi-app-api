@@ -7,11 +7,11 @@ import (
 	"time"
 )
 
-func GenerateUniqueRandomOrders() []models.OrderTicket {
+func GenerateUniqueRandomOrders() models.OrderList {
 	var array []models.OrderTicket
 
-	//Will loop long as in orders will be 50 unique tickets
-	for i := 0; i < 50; {
+	//Will loop as long as in orders will be 50 unique tickets
+	for i := 0; i < 20; {
 		newOrderTicket := generateOrderTicket()
 		doesAlreadyExist := doesOrderTicketAlreadyExist(array, newOrderTicket)
 		if doesAlreadyExist {
