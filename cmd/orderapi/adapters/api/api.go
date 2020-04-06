@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 	"taxiapp/cmd/orderapi/application/manager"
 )
@@ -22,8 +23,14 @@ func NewOrderApi(orderManager manager.OrderManager) OrderAPI {
 
 func (api *orderAPI) GetOrder(w http.ResponseWriter, r *http.Request) {
 
+	body, _ := json.Marshal(map[string]string{"key": "test"})
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
 }
 
 func (api *orderAPI) GetOrdersReport(w http.ResponseWriter, r *http.Request) {
 
+	body, _ := json.Marshal(map[string]string{"key": "test2"})
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
 }

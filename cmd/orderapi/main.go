@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
+	"net"
 	"net/http"
+	"strconv"
 	"sync"
 	"taxiapp/cmd/orderapi/adapters/api"
 	"taxiapp/cmd/orderapi/application/manager"
@@ -17,6 +19,7 @@ import (
 
 type config struct {
 	OrderJobName string `env:"ORDER_JOB_NAME,required"`
+	Port         int    `env:"PORT,required"`
 }
 
 func main() {
@@ -50,10 +53,15 @@ func main() {
 
 	orderController := api.NewOrderApi(orderManager)
 
-	r := mux.NewRouter()
-	adminRouter := r.PathPrefix("/admin").Subrouter()
+	router := mux.NewRouter()
+	adminRouter := router.PathPrefix("/admin").Subrouter()
 
-	r.HandleFunc("/order", orderController.GetOrder).Methods(http.MethodGet)
+	router.HandleFunc("/order", orderController.GetOrder).Methods(http.MethodGet)
 	adminRouter.HandleFunc("/orders", orderController.GetOrdersReport).Methods(http.MethodGet)
 
+	tcpAddr := net.TCPAddr{Port: cfg.Port}
+	log.Println("Server is starting on port", cfg.Port)
+	if err := http.ListenAndServe(tcpAddr.String(), router); err != nil {
+		log.Fatal("Failed to listen port:"+strconv.Itoa(cfg.Port), err.Error())
+	}
 }
