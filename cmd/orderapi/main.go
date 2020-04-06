@@ -2,10 +2,14 @@ package main
 
 import (
 	"log"
+	"net/http"
 	"sync"
-	"taxiapp/cmd/orderapi/application"
+	"taxiapp/cmd/orderapi/adapters/api"
+	"taxiapp/cmd/orderapi/application/manager"
+	"taxiapp/cmd/orderapi/application/service"
 
 	"github.com/caarlos0/env"
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	"github.com/rakyll/ticktock"
 	"github.com/rakyll/ticktock/t"
@@ -32,8 +36,8 @@ func main() {
 	ordersMutex := &sync.RWMutex{}
 
 	// Initialize orders and job
-	fiftyRandomOrders := application.GenerateUniqueRandomOrders()
-	orderListJob := application.NewUpdateOrderListJob(&fiftyRandomOrders, ordersMutex)
+	fiftyRandomOrders := service.GenerateUniqueRandomOrders()
+	orderListJob := service.NewUpdateOrderListJob(&fiftyRandomOrders, ordersMutex)
 
 	// Run every 200 millisecond
 	err = ticktock.Schedule(cfg.OrderJobName, orderListJob, &t.When{Every: t.Every(1).Seconds()})
@@ -41,5 +45,15 @@ func main() {
 		log.Fatal("Failed to schedule cron job for orders", err)
 	}
 	go ticktock.Start()
+
+	orderManager := manager.NewOrderManager(ordersMutex)
+
+	orderController := api.NewOrderApi(orderManager)
+
+	r := mux.NewRouter()
+	adminRouter := r.PathPrefix("/admin").Subrouter()
+
+	r.HandleFunc("/order", orderController.GetOrder).Methods(http.MethodGet)
+	adminRouter.HandleFunc("/orders", orderController.GetOrdersReport).Methods(http.MethodGet)
 
 }
