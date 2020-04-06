@@ -1,7 +1,12 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"taxiapp/cmd/orderapi/application"
+)
 
 func main() {
-	fmt.Println("First skeleton")
+
+	fmt.Println(application.GenerateUniqueRandomOrders())
+
 }
