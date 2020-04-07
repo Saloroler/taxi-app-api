@@ -1,13 +1,11 @@
 package manager
 
 import (
-	"sync"
 	"taxiapp/cmd/orderapi/application/cache"
 	"taxiapp/cmd/orderapi/models"
 )
 
 type manager struct {
-	ordersRWMutex      *sync.RWMutex
 	ordersHistoryCache cache.OrdersHistoryCache
 	ordersCache        cache.OrdersCache
 }

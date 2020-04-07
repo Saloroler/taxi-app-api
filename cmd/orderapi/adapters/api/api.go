@@ -29,6 +29,7 @@ func (api *orderAPI) GetOrder(w http.ResponseWriter, r *http.Request) {
 		log.Println("Failed to marshal order, err:", err)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
 	//Put request in history
@@ -47,6 +48,7 @@ func (api *orderAPI) GetOrdersReport(w http.ResponseWriter, r *http.Request) {
 		log.Println("Failed to marshal requests history, err:", err)
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
 }
