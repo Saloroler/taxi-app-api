@@ -7,7 +7,7 @@ import (
 )
 
 type ordersCache struct {
-	ordersRWMutex *sync.RWMutex
+	ordersRWMutex *sync.Mutex
 	orders        models.OrderList
 	countOfOrders int
 }
@@ -18,32 +18,33 @@ type OrdersCache interface {
 	UpdateOrders()
 }
 
-func NewOrdersCache(ordersRWMutex *sync.RWMutex, countOfOrders int) OrdersCache {
+func NewOrdersCache(countOfOrders int) OrdersCache {
 	return &ordersCache{
-		ordersRWMutex: ordersRWMutex,
+		ordersRWMutex: &sync.Mutex{}, // Initialize mutex to prevent race conditions
 		countOfOrders: countOfOrders,
 		orders:        application.GenerateUniqueRandomOrders(countOfOrders),
 	}
 }
 
+// For test purposes
 func (c *ordersCache) GetAll() models.OrderList {
-	c.ordersRWMutex.RLock()
-	defer c.ordersRWMutex.RUnlock()
+	c.ordersRWMutex.Lock()
+	defer c.ordersRWMutex.Unlock()
 
 	return c.orders
 }
 
 func (c *ordersCache) GetRandom() models.OrderTicket {
-	c.ordersRWMutex.RLock()
-	defer c.ordersRWMutex.RUnlock()
+	c.ordersRWMutex.Lock()
+	defer c.ordersRWMutex.Unlock()
 
 	randomIndex := application.GetRandomNumberBetween(1, c.countOfOrders)
 	return c.orders[randomIndex-1]
 }
 
 func (c *ordersCache) UpdateOrders() {
-	c.ordersRWMutex.RLock()
-	defer c.ordersRWMutex.RUnlock()
+	c.ordersRWMutex.Lock()
+	defer c.ordersRWMutex.Unlock()
 
 	randomOrderIndex := application.GetRandomNumberBetween(1, c.countOfOrders)
 	c.removeTicketFromOrderList(randomOrderIndex - 1)

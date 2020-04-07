@@ -18,9 +18,8 @@ type OrderManager interface {
 	AddOrderRequestInHistory(orderTicket models.OrderTicket)
 }
 
-func NewOrderManager(ordersRWMutex *sync.RWMutex, ordersCache cache.OrdersCache, ordersHistoryCache cache.OrdersHistoryCache) OrderManager {
+func NewOrderManager(ordersCache cache.OrdersCache, ordersHistoryCache cache.OrdersHistoryCache) OrderManager {
 	return &manager{
-		ordersRWMutex:      ordersRWMutex,
 		ordersHistoryCache: ordersHistoryCache,
 		ordersCache:        ordersCache,
 	}

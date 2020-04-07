@@ -5,7 +5,6 @@ import (
 	"net"
 	"net/http"
 	"strconv"
-	"sync"
 	"taxiapp/cmd/orderapi/adapters/api"
 	"taxiapp/cmd/orderapi/application/cache"
 	"taxiapp/cmd/orderapi/application/manager"
@@ -37,15 +36,12 @@ func main() {
 		log.Fatal("Failed to parse config,e:", err.Error())
 	}
 
-	// Initialize mutex to prevent race conditions
-	ordersMutex := &sync.RWMutex{}
-
 	// Initialize orders and history cache
-	ordersCache := cache.NewOrdersCache(ordersMutex, cfg.CountOfOrders)
-	ordersHistory := cache.NewOrderHistoryCache(ordersMutex)
+	ordersCache := cache.NewOrdersCache(cfg.CountOfOrders)
+	ordersHistory := cache.NewOrderHistoryCache()
 
 	// Manager and workers
-	orderManager := manager.NewOrderManager(ordersMutex, ordersCache, ordersHistory)
+	orderManager := manager.NewOrderManager(ordersCache, ordersHistory)
 	orderListWorker := worker.NewUpdateOrderListWorker(ordersCache)
 
 	orderApiController := api.NewOrderApi(orderManager)
