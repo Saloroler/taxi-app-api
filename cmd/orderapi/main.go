@@ -7,8 +7,9 @@ import (
 	"strconv"
 	"sync"
 	"taxiapp/cmd/orderapi/adapters/api"
+	"taxiapp/cmd/orderapi/application/cache"
 	"taxiapp/cmd/orderapi/application/manager"
-	"taxiapp/cmd/orderapi/application/service"
+	"taxiapp/cmd/orderapi/application/worker"
 
 	"github.com/caarlos0/env"
 	"github.com/gorilla/mux"
@@ -18,8 +19,9 @@ import (
 )
 
 type config struct {
-	OrderJobName string `env:"ORDER_JOB_NAME,required"`
-	Port         int    `env:"PORT,required"`
+	OrderJobName  string `env:"ORDER_JOB_NAME,required"`
+	Port          int    `env:"PORT,required"`
+	CountOfOrders int    `env:"COUNT_OF_ORDERS,required"`
 }
 
 func main() {
@@ -38,26 +40,28 @@ func main() {
 	// Initialize mutex to prevent race conditions
 	ordersMutex := &sync.RWMutex{}
 
-	// Initialize orders and job
-	fiftyRandomOrders := service.GenerateUniqueRandomOrders()
-	orderListJob := service.NewUpdateOrderListJob(&fiftyRandomOrders, ordersMutex)
+	// Initialize orders and history cache
+	ordersCache := cache.NewOrdersCache(ordersMutex, cfg.CountOfOrders)
+	ordersHistory := cache.NewOrderHistoryCache(ordersMutex)
+
+	// Manager and workers
+	orderManager := manager.NewOrderManager(ordersMutex, ordersCache, ordersHistory)
+	orderListJob := worker.NewUpdateOrderListJob(ordersCache, cfg.CountOfOrders)
+
+	orderApiController := api.NewOrderApi(orderManager)
 
 	// Run every 200 millisecond
-	err = ticktock.Schedule(cfg.OrderJobName, orderListJob, &t.When{Every: t.Every(1).Seconds()})
+	err = ticktock.Schedule(cfg.OrderJobName, orderListJob, &t.When{Every: t.Every(200).Milliseconds()})
 	if err != nil {
 		log.Fatal("Failed to schedule cron job for orders", err)
 	}
 	go ticktock.Start()
 
-	orderManager := manager.NewOrderManager(ordersMutex)
-
-	orderController := api.NewOrderApi(orderManager)
-
 	router := mux.NewRouter()
 	adminRouter := router.PathPrefix("/admin").Subrouter()
 
-	router.HandleFunc("/order", orderController.GetOrder).Methods(http.MethodGet)
-	adminRouter.HandleFunc("/orders", orderController.GetOrdersReport).Methods(http.MethodGet)
+	router.HandleFunc("/order", orderApiController.GetOrder).Methods(http.MethodGet)
+	adminRouter.HandleFunc("/orders", orderApiController.GetOrdersReport).Methods(http.MethodGet)
 
 	tcpAddr := net.TCPAddr{Port: cfg.Port}
 	log.Println("Server is starting on port", cfg.Port)

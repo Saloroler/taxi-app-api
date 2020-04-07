@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"taxiapp/cmd/orderapi/application/manager"
 )
@@ -22,15 +23,30 @@ func NewOrderApi(orderManager manager.OrderManager) OrderAPI {
 }
 
 func (api *orderAPI) GetOrder(w http.ResponseWriter, r *http.Request) {
+	randomOrder := api.orderManager.GetRandomOrder()
+	body, err := json.Marshal(map[string]string{"order": string(randomOrder)})
+	if err != nil {
+		log.Println("Failed to marshal order, err:", err)
+	}
 
-	body, _ := json.Marshal(map[string]string{"key": "test"})
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
+	//Put request in history
+	api.orderManager.AddOrderRequestInHistory(randomOrder)
 }
 
 func (api *orderAPI) GetOrdersReport(w http.ResponseWriter, r *http.Request) {
+	requests := api.orderManager.GetRequestHistory()
+	if len(requests) == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
 
-	body, _ := json.Marshal(map[string]string{"key": "test2"})
+	body, err := json.Marshal(requests)
+	if err != nil {
+		log.Println("Failed to marshal requests history, err:", err)
+	}
+
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
 }
