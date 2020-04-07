@@ -225,5 +225,10 @@ Rest part without races.
 1) Run application;
 2) Open terminal in new window and run ab -n 15000 -c 100 http://localhost:8085/order to make 15000 request(you can skip it and just test it manually GET http://localhost:8085/order)
 3) Open HTTPClient to provide HTTP API testing;
-4) Make GET request http://localhost:8085/admin/orders
+4) Make GET request http://localhost:8085/admin/orders <br />
 Gets:
+```json
+{"ac":280,"af":168,"bh":327,"cr":306,"cx":18,"di":98,"dr":299,"du":149,"el":286,"ey":326,"fa":308,"fs":311,"gd":307,"gh":298,"gk":300,"im":116,"in":300,"ki":342,"ko":313,"kw":288,"lf":287,"ll":310,"lr":321,"ml":316,"mn":326,"ne":310,"ni":315,"nn":313,"nu":69,"oe":303,"oh":294,"os":299,"pe":307,"ph":300,"pk":300,"ps":18,"qf":329,"qh":301,"ro":305,"sc":275,"se":290,"tj":303,"uc":139,"ur":258,"vc":286,"vm":303,"vr":330,"vv":295,"wr":144,"xf":315,"xl":238,"xn":283,"xt":307,"yb":176,"yi":178,"yo":296,"yt":121}
+```
+You will see how many times was requested specific order.
+Orders list changes every 200 milliseconds.
