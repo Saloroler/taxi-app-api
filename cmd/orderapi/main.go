@@ -46,12 +46,12 @@ func main() {
 
 	// Manager and workers
 	orderManager := manager.NewOrderManager(ordersMutex, ordersCache, ordersHistory)
-	orderListJob := worker.NewUpdateOrderListJob(ordersCache, cfg.CountOfOrders)
+	orderListWorker := worker.NewUpdateOrderListWorker(ordersCache)
 
 	orderApiController := api.NewOrderApi(orderManager)
 
 	// Run every 200 millisecond
-	err = ticktock.Schedule(cfg.OrderJobName, orderListJob, &t.When{Every: t.Every(200).Milliseconds()})
+	err = ticktock.Schedule(cfg.OrderJobName, orderListWorker, &t.When{Every: t.Every(200).Milliseconds()})
 	if err != nil {
 		log.Fatal("Failed to schedule cron job for orders", err)
 	}

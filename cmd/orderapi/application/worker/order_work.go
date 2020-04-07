@@ -1,32 +1,22 @@
 package worker
 
 import (
-	"taxiapp/cmd/orderapi/application"
 	"taxiapp/cmd/orderapi/application/cache"
 )
 
 type UpdateOrders struct {
-	ordersCache   cache.OrdersCache
-	countOfOrders int
-	countOfLoops  int
+	ordersCache cache.OrdersCache
 }
 
-func NewUpdateOrderListJob(ordersCache cache.OrdersCache, countOfOrders int) *UpdateOrders {
+func NewUpdateOrderListWorker(ordersCache cache.OrdersCache) *UpdateOrders {
 	return &UpdateOrders{
-		ordersCache:   ordersCache,
-		countOfOrders: countOfOrders,
+		ordersCache: ordersCache,
 	}
 }
 
+// Realized interface in tick library
 func (u *UpdateOrders) Run() error {
-	// Removing order from list
-	randomOrderIndex := application.GetRandomNumberBetween(1, u.countOfOrders)
-	u.ordersCache.RemoveTicketFromOrderList(randomOrderIndex - 1)
+	u.ordersCache.UpdateOrders()
 
-	// Adding new ticket in list with checking on uniqueness
-	u.ordersCache.AddNewRandomOrderTicket()
-
-	// u.countOfLoops++
-	// fmt.Println(fmt.Sprintf("Loop %v, orders: %v", u.countOfLoops, u.ordersCache.GetAll()))
 	return nil
 }

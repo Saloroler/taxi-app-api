@@ -13,10 +13,9 @@ type ordersCache struct {
 }
 
 type OrdersCache interface {
-	RemoveTicketFromOrderList(randomOrderIndex int)
-	AddNewRandomOrderTicket()
 	GetAll() models.OrderList
 	GetRandom() models.OrderTicket
+	UpdateOrders()
 }
 
 func NewOrdersCache(ordersRWMutex *sync.RWMutex, countOfOrders int) OrdersCache {
@@ -27,7 +26,33 @@ func NewOrdersCache(ordersRWMutex *sync.RWMutex, countOfOrders int) OrdersCache 
 	}
 }
 
-func (c *ordersCache) RemoveTicketFromOrderList(orderIndex int) {
+func (c *ordersCache) GetAll() models.OrderList {
+	c.ordersRWMutex.RLock()
+	defer c.ordersRWMutex.RUnlock()
+
+	return c.orders
+}
+
+func (c *ordersCache) GetRandom() models.OrderTicket {
+	c.ordersRWMutex.RLock()
+	defer c.ordersRWMutex.RUnlock()
+
+	randomIndex := application.GetRandomNumberBetween(1, c.countOfOrders)
+	return c.orders[randomIndex-1]
+}
+
+func (c *ordersCache) UpdateOrders() {
+	c.ordersRWMutex.RLock()
+	defer c.ordersRWMutex.RUnlock()
+
+	randomOrderIndex := application.GetRandomNumberBetween(1, c.countOfOrders)
+	c.removeTicketFromOrderList(randomOrderIndex - 1)
+
+	// Adding new ticket in list with checking on uniqueness
+	c.addNewRandomOrderTicket()
+}
+
+func (c *ordersCache) removeTicketFromOrderList(orderIndex int) {
 	// Delete with order
 	//c.orders = append(c.orders[:orderIndex], c.orders[orderIndex+1:]...)
 
@@ -36,7 +61,7 @@ func (c *ordersCache) RemoveTicketFromOrderList(orderIndex int) {
 	c.orders = c.orders[:len(c.orders)-1]
 }
 
-func (c *ordersCache) AddNewRandomOrderTicket() {
+func (c *ordersCache) addNewRandomOrderTicket() {
 	for {
 		newOrderTicket := application.GenerateOrderTicket()
 		doesTicketAlreadyExist := c.orders.DoesOrderTicketAlreadyExist(newOrderTicket)
@@ -46,13 +71,4 @@ func (c *ordersCache) AddNewRandomOrderTicket() {
 		c.orders = append(c.orders, newOrderTicket)
 		break
 	}
-}
-
-func (c *ordersCache) GetAll() models.OrderList {
-	return c.orders
-}
-
-func (c *ordersCache) GetRandom() models.OrderTicket {
-	randomIndex := application.GetRandomNumberBetween(1, c.countOfOrders)
-	return c.orders[randomIndex-1]
 }
